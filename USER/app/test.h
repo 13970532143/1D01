@@ -60,14 +60,6 @@ void lcd_task(void *pdata);
 void ctr_task(void *pdata);
 
 
-//自清洁屏任务
-//设置任务优先级
-#define CLEAR_TASK_PRIO       			9
-//设置任务堆栈大小
-#define CLEAR_STK_SIZE  					64
-//任务函数接口
-void clear_task(void *pdata);
-
 
 #endif
 

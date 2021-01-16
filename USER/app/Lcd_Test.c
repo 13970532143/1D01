@@ -94,16 +94,9 @@ Rest_LCD:
         SV17F_MP3_Specify(13);
         goto Rest_LCD;
     }
-//    Clear();    //开机清洁
-    
-//    sys_var.Screen = S_Welcome;
-//    HIM_SCR_ID(sys_var.Screen);
     delay_ms(50);
-//    HMI_TXIntToEdit(ED_Ver_E,5);                //显示进度
-//    HMI_PictureCopy_xy(BAS_W_E,1,16,621,16+45,621+26);     //显示进度条
-//    HMI_TXStrToEdit(TXT_Ver_A,versions_A,15);      //显示版本号
-////    HMI_TXStrToEdit(TXT_Ver_B,versions_B,15);
-//     Clear();    //开机清洁·
+
+     Clear();    //开机清洁·
 //    if(sys_var.Language!=0)
 //    {
 //        sys_var.Screen = S_HOME+74 + 2 * sys_var.Language;

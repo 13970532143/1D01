@@ -185,7 +185,6 @@ void Clear2(void)
         if(i>10)
         {
             i=0;
-//            LED_G = !LED_G;//绿灯闪 1s
             time++;
             if(time<10)
             {
@@ -208,7 +207,6 @@ void Clear2(void)
                 HMI_PictureCopy_xy(BAS_W_E,S_Welcome+1,16,621,16+360,621+26);
             }
             printf("Clear2 达到常压 \r\n");
-//            RGB_Colour(GREEN);      //开绿灯
             break;
         }   
         delay_ms(50);
@@ -283,7 +281,7 @@ void Clear4(void)
                 }
             }
         }
-        if(((int)(sys_var.Adc_value[vacuum_v] )) <= 60)  //50KPa //负压达到-50KPa时自清洁1结束
+        if(((int)(sys_var.Adc_value[vacuum_v] )) <= 50)  //50KPa //负压达到-50KPa时自清洁1结束
         {
             
             sys_var.Job_step = 4;
