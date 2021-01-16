@@ -1,0 +1,70 @@
+/*
+* Copyright (C) 黄文基.深圳科医仁科技发展有限公司
+* Time：
+ */
+ 
+#include "test.h"
+
+
+//负压计算公式
+//VAC_P = VAC_K * VAC_V + VAC_B
+//调节负压模块电阻，使负压模块在常压下输出2.5V
+//2.5V-->100KPa
+//VAC_V:测得电压
+#define VAC_K  (float)(500/12)
+#define VAC_B  (float)(-50/12)
+
+
+
+void adc_task(void *pdata)
+{
+	float voltage[5];
+    float ingiter_R=0.0,adc_vac=0.0;
+    float ingiter_T=0.0;
+	pdata = pdata;
+    
+    while(1)
+    {
+
+        
+        //5V电压
+		adc_vac = Get_AdcValue(voltage_5v);     
+        voltage[voltage_5v]=(float)((adc_vac*1.0*3.30)/4095);
+        sys_var.Adc_value[voltage_5v] = (float)(voltage[voltage_5v] * 1.67);
+//        printf("5V电压=%d\r\n",(int)(sys_var.Adc_value[voltage_5v]*100));
+        
+        //24V电压
+        adc_vac = Get_AdcValue(voltage_24v);
+        voltage[voltage_24v]=(float)((adc_vac*1.0*3.30)/4095);
+        sys_var.Adc_value[voltage_24v] = (float)(voltage[voltage_24v] * 11);
+//        printf("24V电压=%d\r\n",(int)(sys_var.Adc_value[voltage_24v]*100));
+        
+        //臭氧管温度
+		adc_vac = Get_AdcValue(ozonizer_t);
+        voltage[ozonizer_t]=(float)((adc_vac*1.0*3.30)/4095);
+        ingiter_R = (float)(((50/voltage[ozonizer_t])-10)*1000);
+		ingiter_T = Get_Temp(ingiter_R);//获取臭氧管的温度
+        sys_var.Adc_value[ozonizer_t] = ingiter_T;
+        if(sys_var.Adc_value[ozonizer_t]>50)
+        {
+            
+        }
+        
+        //负压大小
+		adc_vac = Get_AdcValue(vacuum_v);
+		voltage[vacuum_v]=(float)((adc_vac*1.0*3.30)/4095); 
+		sys_var.Adc_value[vacuum_v] = (float)((voltage[vacuum_v]*500 -50)/12);
+//        printf("负压大小=%d\r\n",(int)( voltage[vacuum_v]*100));
+        
+        //散热片温度
+        adc_vac = Get_AdcValue(cooling_fin);
+		voltage[cooling_fin]=(float)((adc_vac*1.0*3.30)/4095); 
+        ingiter_R = (float)(((50/voltage[cooling_fin])-10)*1000);
+		ingiter_T = Get_Temp(ingiter_R);//获取散热片温度
+		sys_var.Adc_value[cooling_fin] = ingiter_T;
+
+        delay_ms(100);
+    }
+}
+
+

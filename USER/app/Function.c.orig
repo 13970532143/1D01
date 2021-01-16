@@ -1,0 +1,292 @@
+#include "Function.h"
+
+
+void dis_density(u8 mode, u8 nums)
+{
+    switch(mode)
+    {
+        case O3Bag:     //三氧套袋
+            HMI_TXIconVal(VAR_OB_Tens,(unsigned short)nums/10);
+            HMI_TXIconVal(VAR_OB_units,(unsigned short)nums%10);
+            break;  
+        case infusionBottle:    //输液瓶
+            HMI_TXIconVal(VAR_BT_Tens,(unsigned short)nums/10);
+            HMI_TXIconVal(VAR_BT_units,(unsigned short)nums%10);
+            break;
+        case infusionBag:       //输液袋
+            HMI_TXIconVal(VAR_BG_Tens,(unsigned short)nums/10);
+            HMI_TXIconVal(VAR_BG_units,(unsigned short)nums%10);
+             
+            break;
+        case O3Hydrate:     //臭氧水化
+            HMI_TXIconVal(VAR_H_Tens,(unsigned short)nums/10);
+            HMI_TXIconVal(VAR_H_units,(unsigned short)nums%10);
+            
+            break;
+        case suctionCup:    //负压罩杯
+            HMI_TXIconVal(VAR_SC_Tens,(unsigned short)nums/10);
+            HMI_TXIconVal(VAR_SC_units,(unsigned short)nums%10);
+            
+            break;
+        case ration:        //定量供气
+            HMI_TXIconVal(VAR_RT_Tens,(unsigned short)nums/10);
+            HMI_TXIconVal(VAR_RT_units,(unsigned short)nums%10);
+            
+            break;
+        case injector:      //注射器
+            HMI_TXIconVal(VAR_IJ_Tens,(unsigned short)nums/10);
+            HMI_TXIconVal(VAR_IJ_units,(unsigned short)nums%10);
+            
+            break;
+        default:break;
+    }
+}
+
+//三氧水化模式下倒计时显示
+//times：显示的倒计时 单位s
+void dis_countdown(u16 times)
+{
+    char str[2];
+    u8 min=times/60,sec=times%60;
+    str[0] = min/10+'0';
+    str[1] = min%10+'0';
+    HMI_TXStrToEdit(TXT_H_Min,str,5); 
+    
+    str[0] = sec/10+'0';
+    str[1] = sec%10+'0';
+    HMI_TXStrToEdit(TXT_H_Sec,str,5);
+}
+//真空瓶压力条显示
+void dis_vac_bar(u8 vac_value)
+{
+    vac_value = map(vac_value,40,140,0,260);
+    HMI_PictureCopy_xy(BAS_BT_Vbar,S_IFBottle+1,39+vac_value,449,39+260,450+43);
+}
+//罩杯压力条显示
+void dis_vac_bar2(u8 vac_value)
+{
+    u16 value = 0;
+    if(vac_value<50)vac_value = 50;
+    if(vac_value>100)vac_value = 100;
+    value = map(vac_value,50,100,0,351);
+    HMI_PictureCopy_xy(BAS_SC_Vbar,S_SuctionCup+1,39+351-value,449,39+351,450+43);
+}
+
+//负压罩杯模式下负压大小调节
+//负压大小0-10
+void Adj_vac_value(u8 vac)
+{
+    HMI_PictureCopy_xy(BAS_SC_Vbar,S_SuctionCup+1,39+351-vac*35,450,39+351,450+43);
+}
+
+//处理语言
+void Deal_Language(u8 Language)
+{
+    static u8 old_language = 254;        //初始化一个语言不可能的值
+    if(Language != old_language)
+    {
+        switch(Language)
+        { 
+            case Engliah:
+                HMI_PictureCopy_xy(BAS_L_English+0x10*old_language,S_Language+1,0,0,0,0);
+                HMI_PictureCopy_xy(BAS_L_English,S_Language+1,73,157,73+257,157+66);
+                break;
+            case Deutush:
+                HMI_PictureCopy_xy(BAS_L_English+0x10*old_language,S_Language+1,0,0,0,0);
+                HMI_PictureCopy_xy(BAS_L_Deutsch,S_Language+1,468,149,468+257,149+66);
+                break;
+            case Espanol:
+                HMI_PictureCopy_xy(BAS_L_English+0x10*old_language,S_Language+1,0,0,0,0);
+                HMI_PictureCopy_xy(BAS_L_Espanol,S_Language+1,73,270,73+257,270+66);
+                break;
+            case Pyccknn:
+                HMI_PictureCopy_xy(BAS_L_English+0x10*old_language,S_Language+1,0,0,0,0);
+                HMI_PictureCopy_xy(BAS_L_Pycckn,S_Language+1,468,270,468+257,270+66);
+                break;
+            case Francaise:
+                HMI_PictureCopy_xy(BAS_L_English+0x10*old_language,S_Language+1,0,0,0,0);
+                HMI_PictureCopy_xy(BAS_L_Francais,S_Language+1,73,378,73+257,378+66);
+                break;
+            case Chinese:
+                HMI_PictureCopy_xy(BAS_L_English+0x10*old_language,S_Language+1,0,0,0,0);
+                HMI_PictureCopy_xy(BAS_L_Chinese,S_Language+1,468,378,468+257,378+66);
+                break;             
+                
+        }
+        old_language = Language;
+    }
+}
+
+
+void Clear(void)
+{
+	Clear1();
+	Clear2();
+	Clear3();
+	Clear4();
+	Clear5();
+}
+
+void Clear1(void)
+{
+    u8 i = 0,time=0;
+    printf("Clear1 排气start\r\n");
+    Valve4 = Valve6 = Valve7 = ON;
+    PWM3_OUT(VacCtr_ON);
+    Valve1 = Valve2 = Valve3 = Valve5 = OFF;
+    while(1)
+    {
+        
+		i++;
+		if(i>10)
+		{
+			i=0;
+			LED_G = !LED_G;//绿灯闪 1s
+			time++;
+			if(time<10)
+			{
+				HMI_TXIntToEdit(ED_Ver_E,5+time*2);
+				HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+35+time*2,485+20);
+			}
+		}
+        
+        if(((int)(sys_var.Adc_value[vacuum_v] )) <= 50)  //50KPa//负压达到-50KPa时自清洁1结束
+        {
+            SV17F_MP3_Specify(11);        //真空提醒
+			sys_var.Job_step = 1;
+            HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20);
+			HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+2*70,485+20);
+            printf("Clear1 排气结束\r\n");
+			RGB_Colour(LED_OFF);      //开绿灯
+            break; //
+        }
+        delay_ms(50);
+    }
+    
+}
+void Clear2(void)
+{
+    u8 i=0,time=0;
+    
+    printf("Clear2 填充臭氧 start\r\n");
+    Valve1 = Valve2 = Valve4 = Valve6 = ON;
+    PWM3_OUT(VacCtr_OFF);
+    Valve3 = Valve5 = Valve7 = OFF;
+	TIM_Cmd(TIM4, ENABLE);  //开臭氧
+    PWM2_OUT(map(20,0,80,MIN_PULSE,MAX_PULSE));
+    while(1)
+    {
+		i++;
+		if(i>10)
+		{
+			i=0;
+			LED_G = !LED_G;//绿灯闪 1s
+			time++;
+			if(time<10)
+			{
+				HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20+time*2);
+				HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+2*70+time*2,485+20);
+			}
+		}
+       
+        if(((int)(sys_var.Adc_value[vacuum_v] )) >= 105)  //常压100KPa 
+        {
+            sys_var.Job_step = 2;
+            HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20-1);
+			HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+4*70,485+20);
+            printf("Clear2 达到常压 \r\n");
+			RGB_Colour(LED_OFF);      //开绿灯
+            break;
+        }
+        delay_ms(50);
+    }
+}
+void Clear3(void)
+{
+    u8 i=0,time = 0;
+	printf("Clear3 10S臭氧杀毒\r\n");
+    Valve4 = Valve6 = ON;
+	PWM3_OUT(VacCtr_OFF);
+    Valve1 = Valve2 = Valve3 = Valve5 = Valve7 = OFF;
+    TIM_Cmd(TIM4, ENABLE);  //开臭氧
+    PWM2_OUT(map(30,0,80,MIN_PULSE,MAX_PULSE));
+    while(1)
+    {
+        i++;
+        if(i>10)
+        {
+            i=0;
+            time ++;
+            LED_G = !LED_G;//绿灯闪 1s
+			time++;
+			HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20+time*2);
+			HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+4*70+time*2,485+20);
+			
+        }
+        if(time==20)
+		{
+			sys_var.Job_step = 3;
+            HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20);
+			HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+6*70,485+20);
+            printf("Clear3 杀毒结束\r\n");
+			RGB_Colour(LED_OFF);      //开绿灯
+			break;  //10s后退出
+		}
+        delay_ms(50);
+    }
+}
+void Clear4(void)
+{
+    u8 i=0,time=0;
+	printf("Clear4 排出管内气\r\n");
+    Valve4 = Valve6 = Valve7 = ON;
+    PWM3_OUT(VacCtr_ON);
+    Valve1 = Valve2 = Valve3 = Valve5 = OFF;
+    TIM_Cmd(TIM4, ENABLE);  //开臭氧
+    PWM2_OUT(map(30,0,80,MIN_PULSE,MAX_PULSE));
+    while(1)
+    {
+		i++;
+		if(i>10)
+		{
+			i=0;
+			LED_G = !LED_G;//绿灯闪 1s
+			time++;
+			if(time<10)
+			{
+				HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20+time);
+				HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+6*70+time,485+20);
+			}
+		}
+        if(((int)(sys_var.Adc_value[vacuum_v] )) <= 50)  //50KPa //负压达到-50KPa时自清洁1结束
+        {
+            SV17F_MP3_Specify(11);        //真空提醒
+			sys_var.Job_step = 4;
+            HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20);
+			HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+8*70,485+20);
+			RGB_Colour(LED_OFF);      //开绿灯
+			printf("Clear4 达到真空\r\n");
+            break; //
+        }
+        delay_ms(50);
+    }
+}
+void Clear5(void)
+{
+	printf("Clear5 关闭臭氧 start\r\n");
+    PWM3_OUT(VacCtr_OFF);
+    Valve1 = Valve2 = Valve3 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
+    TIM_Cmd(TIM4, DISABLE);  //开臭氧
+    PWM2_OUT(0);
+    LED_G = 1;//绿灯常亮
+	sys_var.Job_step = 5;
+	delay_ms(500);
+	HMI_TXIntToEdit(ED_Ver_E,sys_var.Job_step*20-1);
+	HMI_PictureCopy_xy(BAS_W_E,30,17,485,17+10*70,485+20);
+	RGB_Colour(GREEN);      //开绿灯
+	printf("Clear5 清洁结束\r\n");
+}
+
+
+
+

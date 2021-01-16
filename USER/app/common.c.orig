@@ -1,0 +1,41 @@
+#include "common.h"
+
+void SoftDelayms(unsigned short delay)
+{
+	unsigned short i, j;
+	for(i=0; i<delay; i++)
+	{
+		for(j=7900; j!=0; j--)
+		    ;
+	}
+}
+
+
+void Variables_init(void)
+{
+    sys_var.work_sta =0;
+    sys_var.Density = 0;
+    sys_var.test_sta = 0;
+}
+
+void ALL_Init(void)
+{
+	LED_Init();
+    SystemGPIO();
+    IIC_Init();		 	 	
+	W25QXX_Init();			//W25QXX初始化
+    KEY_Init();
+//    TIM4_PWM_Init(750-1,5);	        //PWM频率=72000000/(5+1)/(750)=16Khz
+    TIM4_PWM_Init(10000-1,120-1);	    //PWM频率=72000000/(120)/(10000)=60hz
+    TIM3_PWM_Init(1200-1,10-1);         //PWM频率=72000000/(10)/(1200)=6Khz
+    TIM5_PWM_Init(1000-1,72-1);         //PWM频率=72000000/(72)/(1000)=1Khz
+    TIM_SetCompare2(TIM3,720);
+	USART3_Init(115200);			//HIM连接
+    USART2_Init(9600); 
+    Variables_init();
+    uart_init(115200);
+	Adc_Init();
+	//OSTimeDly(5);
+}
+
+

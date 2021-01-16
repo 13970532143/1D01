@@ -1,0 +1,201 @@
+
+#include "test.h"
+
+
+const u8 write_flash[] = "FALSH OK ";
+#define SIZE sizeof(write_flash)		//数组长度
+#define FLASH_SAVE_ADDR  0X08070000		//设置FLASH 保存地址(必须为偶数，且其值要大于本代码所占用FLASH的大小+0X08000000)
+#define Volume_Tims_K    1              //定量供气，体积与时间的关系
+
+void tmr1_callback(OS_TMR *ptmr,void *p_arg)        //软件定时,用于计算制冷时间
+{
+    static u16 Volume=0,time=0;      //体积,时间
+    static u8 old_work_mod = 0;
+    if(old_work_mod!=sys_var.work_mode)     //工作模式改变后，进行变量清零
+    {
+        old_work_mod = sys_var.work_mode;
+        time = 0;
+        Volume=0;
+    }
+    if(sys_var.H2O_countdowm==1)    //臭氧水化开始倒计时
+    {
+        sys_var.Countdown--;
+        dis_countdown(sys_var.Countdown);       //显示倒计时
+        if(sys_var.Countdown==0)
+        {
+            sys_var.Job_step=3;
+            sys_var.H2O_countdowm = 0;
+            sys_var.Countdown = 600;
+        }
+    }
+    if(sys_var.work_mode==O3Bag)       //三氧套袋模式下
+    {
+        if(sys_var.Job_step==5)     //三氧套袋充满臭氧后进行10分钟倒计时
+        {
+            time++;
+            if(time>=30)        //10分钟倒计时结束
+            {
+                sys_var.Job_step = 6; //10分钟倒计时结束
+                time=0;
+            }
+        }
+    }
+    if(sys_var.work_mode==ration)       //定量供气模式下
+    {
+        if(sys_var.work_sta==1)     //处于臭氧输出工作状体
+        {
+            time++;                 //计数器工作
+            Volume = Volume_Tims_K*time;
+            if(Volume>=sys_var.O3bulk)      //输出的臭氧达到设定的臭氧体积，停止臭氧输出，清零计数器
+            {
+                sys_var.Job_step = 3;
+                time = 0;
+                Volume = 0;
+
+            }
+        }
+        else time = 0;      //停止了臭氧输出，计数器清零
+    }
+    if(sys_var.work_mode==infusionBag)       //定量供气模式下
+    {
+        if(sys_var.Job_step==1)         //处于臭氧输出状态
+        {
+            time++;
+            Volume = Volume_Tims_K*time;
+            if(Volume>=sys_var.O3bulk)      //输出的臭氧达到设定的臭氧体积，停止臭氧输出，清零计数器
+            {
+                time = 0;
+                Volume = 0;
+                sys_var.work_sta=0;
+                sys_var.Job_step = 2;
+            }
+
+        }
+    }
+
+
+}
+void led_task(void *pdata)
+{
+    OS_TMR   * tmr1;
+    u8 err=0,i=0;
+    u8 erprom = 0,flash = 0;
+    u8 y=0,reade=0;
+    u8 reade_flash[20]="           ";
+    u8 NUN=10;
+    u32 get_num=0;
+    pdata = pdata;
+    delay_ms(100);
+
+    tmr1=OSTmrCreate(0,10,OS_TMR_OPT_PERIODIC,(OS_TMR_CALLBACK)tmr1_callback,0,"tmr1",&err);	//1000mss执行一次
+    OSTmrStart(tmr1,&err);//启动软件定时器1
+
+    while(1)
+    {
+
+        if(i == 10 )
+        {
+            LED0 = !LED0;
+            i = 0;
+            if(sys_var.test_sta==1)
+            {
+//                printf("NTC温度*100=%d\r\n",(int)(sys_var.Adc_value[ozonizer_t]*100));
+//				printf("负压大小*100 %2d\r\n\r\n",(int)(sys_var.Adc_value[vacuum_v]*10));//(int)sys_var.Adc_value[vacuum_v]);
+                HMI_ShowNumber_int(TXT_TS_VAC,(int)sys_var.Adc_value[vacuum_v],3,5);
+                HMI_ShowNumber_int(TXT_TS_TEMP,(int)(sys_var.Adc_value[ozonizer_t]*100),4,5);
+                HMI_ShowNumber_int(TXT_TS_TEMP2,(int)(sys_var.Adc_value[cooling_fin]*100),4,5);
+                HMI_ShowNumber_int(TXT_TS_5V,(int)(sys_var.Adc_value[voltage_5v]*100),4,5);
+                HMI_ShowNumber_int(TXT_TS_24V,(int)(sys_var.Adc_value[voltage_24v]*100),4,5);
+                y++;
+                if(y==1) RGB_Colour(RED);
+                if(y==2) RGB_Colour(GREEN);
+                if(y==3) RGB_Colour(BLUE);
+                if(y>=3)y=0;
+                Valve1=!Valve1;
+                Valve2=!Valve2;
+                Valve3=!Valve3;
+                Valve4=!Valve4;
+                Valve5=!Valve5;
+                Valve6=!Valve6;
+                Valve7=!Valve7;
+                Valve8=!Valve8;
+//                VacCtr = ON;
+                if(erprom!=1)
+                {
+                    err=EEPROM_WriteSeq(10,(INT8U*)&NUN,sizeof(NUN));
+                    delay_ms(50);
+                    err=EEPROM_ReadSeq(10,(INT8U*)&reade,sizeof(reade));
+                    delay_ms(50);
+                    if(reade==10)
+                    {
+                        printf("EEPROM OK\r\n");
+                        HMI_TXStrToEdit(TXT_TS_EEPROM,"OK",5);
+
+                        erprom = 1;
+                    }
+                    else
+                    {
+                        HMI_TXStrToEdit(TXT_TS_EEPROM,"ERROR",5);
+                        printf("EEPROM ERR\r\n");
+                    }
+                }
+                if(flash!= 1)
+                {
+                    W25QXX_Write((u8*)write_flash,FLASH_SAVE_ADDR,SIZE);
+                    delay_ms(50);
+                    W25QXX_Read((u8*)reade_flash,FLASH_SAVE_ADDR,SIZE);
+                    delay_ms(50);
+                    if(reade_flash[0] == 'F')
+                    {
+                        printf("flash read=%s\r\n",reade_flash);
+                        HMI_TXStrToEdit(TXT_TS_FLASH,"OK",5);
+                        flash = 1;
+                    }
+                    else
+                    {
+                        printf("FLASH ERR\r\n");
+                        HMI_TXStrToEdit(TXT_TS_FLASH,"ERROR",5);
+                    }
+                }
+            }
+            else if((sys_var.test_sta&0x02)==1)
+            {
+                flash = 0;
+                erprom = 0;
+                RGB_Colour(0);
+                Valve1=OFF;
+                Valve2=OFF;
+                Valve3=OFF;
+                Valve4=OFF;
+                Valve5=OFF;
+                Valve6=OFF;
+                Valve7=OFF;
+                Valve8=OFF;
+                //VacCtr = OFF;
+            }
+        }
+        if(KEY_Scan(0)==WKUP_PRES)
+        {
+            SV17F_MP3_Specify(11);
+                    PWM3_OUT(VacCtr_ON);
+//			Valve1=OFF;
+//            sta = !sta;
+//			Valve1=Valve2=Valve4=Valve5=sta;
+//            Valve4=OFF;
+//			Clear();
+
+//            duty+=500;
+//            if(duty>6000) duty = 100;
+//            PWM1_OUT(duty);
+        }
+        i++;
+         scanf("%d",&get_num);
+        if(get_num!=0)
+        {
+            printf("%d\r\n",get_num);
+             get_num = 0;
+        }   
+         delay_ms(50);
+    }
+}
+
