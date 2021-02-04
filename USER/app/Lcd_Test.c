@@ -522,6 +522,8 @@ void Screen_O3Bag(unsigned short bt_value)
             else sys_var.Screen = S_HOME;
             sys_var.work_mode = 0;
             HIM_SCR_ID(sys_var.Screen);
+            Valve3 = ON;
+            Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
             HMI_PictureCopy_xy(BAS_OB_Cnum,sys_var.Screen,94,213,94+382,312+158);  //数字显示框
             break;
         }
@@ -693,6 +695,8 @@ void Screen_IFBottle(unsigned short bt_value)
 //                if(sys_var.Job_step!=0) Clear();
                 HIM_SCR_ID(sys_var.Screen );
 //                HMI_PictureCopy_xy(BAS_BT_Cnum,S_IFBottle,43,188,42+252,188+173);
+                Valve1 = Valve2 =Valve4 = Valve5 = Valve6 = Valve7 = OFF;
+                 Valve3 = ON;
             }
             break;
         }
@@ -922,11 +926,6 @@ void Screen_IFBAG(unsigned short bt_value)
                 
 
             }
-//            if(input_sta==2)
-//            {
-//                input_sta = 1;
-//                HMI_TXIconVal(VAR_SR,sys_var.Language);
-//            }
             break;
 
 
@@ -936,12 +935,7 @@ void Screen_IFBAG(unsigned short bt_value)
                 V_sta = 0;
                 input_sta = 1;
                 HMI_PictureCopy_xy(BAS_BG_Cnum,sys_var.Screen+1,95,313,95+381,313+154);
-                            
-    //            HMI_PictureCopy_xy(BAS_BG_Cnum,sys_var.Screen+1,42,188,42+252,188+173);
                 HMI_PictureCopy_xy(BAS_BG_V,sys_var.Screen,179,507,179+252,507+57); //体积
-    //            HMI_PictureCopy_xy(BAS_BG_Cnum,S_IFBAG+1,42,188,42+252,188+173);
-    //            HMI_PictureCopy_xy(BAS_BG_V,S_IFBAG,162,387,162+158,387+52);        
-    //            num_value[0] = 0;
                 dis_density(sys_var.work_mode,num_value[0]);
             }
             
@@ -970,8 +964,8 @@ void Screen_IFBAG(unsigned short bt_value)
             sys_var.work_mode = 0;//待机模式
 //            if(sys_var.Job_step!=0) Clear();
             HIM_SCR_ID(sys_var.Screen);
-//            HMI_PictureCopy_xy(BAS_BG_Cnum,S_IFBAG,42,188,42+252,188+173);
-//            HMI_PictureCopy_xy(BAS_BG_V,S_IFBAG,162,387,162+158,387+52);
+            Valve5 = ON;
+            Valve1 = Valve2 = Valve3 = Valve4 =  Valve6 = Valve7 = OFF;
             break;
         }
     }
@@ -1083,6 +1077,8 @@ void Screen_O3Hydrate(unsigned short bt_value)
                 HIM_SCR_ID(sys_var.Screen);
                 HMI_PictureCopy_xy(BAS_H_Cnum,sys_var.Screen,97,349,97+375,349+223);
 //                HMI_PictureCopy_xy(BAS_H_Cnum,S_O3Hydrate,44,211,44+286,211+236);
+                Valve3 =  ON;
+                Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
             }
             break;
         }
@@ -1197,7 +1193,8 @@ void Screen_SuctionCup(unsigned short bt_value)
                 HIM_SCR_ID(sys_var.Screen);
                 HMI_PictureCopy_xy(BAS_SC_Cnum,sys_var.Screen,98,283,98+373,283+148);  //数字显示框 
                 HMI_PictureCopy_xy(BAS_SC_Cnum,S_SuctionCup,53,158,53+280,258+168); //浓度输入框复位
-                
+                Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
+                Valve3 = ON; 
             }
             break;
         }
@@ -1367,8 +1364,8 @@ void Screen_Ration(unsigned short bt_value)
             HIM_SCR_ID(sys_var.Screen);
             HMI_PictureCopy_xy(BAS_RT_Cnum,sys_var.Screen,98,278,96+376,278+155);  //数字显示框
             HMI_PictureCopy_xy(BAS_RT_V,sys_var.Screen,181,475,181+248,475+44);  //体显示框
-//            HMI_PictureCopy_xy(BAS_RT_Cnum,S_Ration,35,167,35+338,167+240);
-//            HMI_PictureCopy_xy(BAS_RT_V,S_Ration,182,427,182+219,427+85);
+            Valve1 = Valve2 =  Valve4 = Valve5 = Valve6 = Valve7 = OFF;
+            Valve3 = ON;
             break;
 
         case BT_RT_V:     //体积按钮
@@ -1378,9 +1375,6 @@ void Screen_Ration(unsigned short bt_value)
                 input_sta = 1;
                 HMI_PictureCopy_xy(BAS_RT_Cnum,sys_var.Screen,98,278,96+376,278+155);  //数字显示框
                 HMI_PictureCopy_xy(BAS_RT_V,sys_var.Screen+1,181,475,181+248,475+44);  //体显示框
-    //            HMI_PictureCopy_xy(BAS_RT_Cnum,S_Ration,35,167,35+338,167+240);
-    //            HMI_PictureCopy_xy(BAS_RT_V,S_Ration+1,182,427,182+219,427+85);
-    //            num_value[1] = 0;
                 HMI_ShowNumber(TXT_RT_V,num_value[V_sta],0,8);
             }
             break;
@@ -1515,7 +1509,8 @@ void Screen_Injector(unsigned short bt_value)
 //            if(sys_var.Job_step!=0) Clear();   //自清洁
             HIM_SCR_ID(sys_var.Screen);
             HMI_PictureCopy_xy(BAS_IJ_Cnum,sys_var.Screen,98,352,98+376,352+217);  //数字显示框
-//            HMI_PictureCopy_xy(BAS_IJ_Cnum,S_Injector,34,168,34+341,168+290);
+            Valve1 = Valve2 = Valve3 = Valve4 = Valve6 = Valve7 = OFF;
+            Valve5 = ON;
             break;
         }
     }

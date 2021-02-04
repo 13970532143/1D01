@@ -2,7 +2,7 @@
 
 #include "test.h"
 #include "Function.h"
-
+#include "common.h"
 #define Volume_Tims_K    1              //定量供气，体积与时间的关系
 
 
@@ -128,8 +128,7 @@ void ctr_task(void *pdata)
                         PWM2_OUT(0);
                     }
                     sys_var.work_down_time = 5;
-                    HMI_TXIntToEdit(ED_Down_time,sys_var.work_down_time);
-                    
+                    HMI_TXIntToEdit(ED_Down_time,sys_var.work_down_time);                    
                 }
                 else        //开启制臭氧
                 {
@@ -160,8 +159,7 @@ void ctr_task(void *pdata)
                 
                 if(sys_var.Job_step==1)     //开泵
                 {
-                    
-//                        RGB_Colour(GREEN);      //开绿灯
+                   
                     Valve1 = Valve2 = Valve2 = Valve4 = OFF;
                     Valve5 = Valve6 = Valve7 =  ON;
                     PWM3_OUT(VacCtr_ON);       //泵
@@ -176,28 +174,22 @@ void ctr_task(void *pdata)
                     sys_var.Vac_Open = 0;
                     SV17F_MP3_Specify(11);      //真空语音提示
                     Dis_CV_BAS(BAS_OB_V,0,78,95,522);
-//                    HMI_PictureCopy_xy(BAS_OB_V,sys_var.Screen,97,525,97+381,525+94);  //负压控件
-//                    HMI_TXIconVal(VAR_OB_V,sys_var.Vac_Open);   //切换触控屏负压指示
-//                    HMI_TXIconVal(VAR_OB_TV,2*sys_var.Language+sys_var.Vac_Open);   //切换触控屏负压指示
                     sys_var.Job_step = 3;
-
                     printf("达到真空\r\n");
                 }
-                
-                
             }
             
             if((sys_var.work_sta==1)&&(sys_var.Work_Down!=1)) //开臭氧
             {
                 
-                if(sys_var.Job_step == 3)       //在真空状态下
+                if(sys_var.Job_step == 3)         //在真空状态下
                 {
                     Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = ON;
                     Valve3 = Valve7 =  OFF;
                     TIM_Cmd(TIM4, ENABLE);  //开臭氧
 //                    PWM2_OUT(map(sys_var.Density,0,80,MIN_PULSE,MAX_PULSE));
-                    PWM2_OUT(Density_P[sys_var.Density-1]);
-//                        RGB_Colour(BLUE);
+//                    PWM2_OUT(Density_P[sys_var.Density-1]);
+                    PWM2_OUT(0); 
                     sys_var.Job_step = 4;
                     printf("开臭氧\r\n");
                     
@@ -215,9 +207,6 @@ void ctr_task(void *pdata)
                         sys_var.Job_step = 5;
                         sys_var.work_sta=0;
                         Dis_CV_BAS(BAS_OB_C,0,77,95,414);
-//                        HMI_PictureCopy_xy(BAS_OB_C,sys_var.Screen,93,412,93+382,412+99);  //浓度控件
-//                        HMI_TXIconVal(VAR_OB_C,0);
-//                        HMI_TXIconVal(VAR_OB_TC,2*sys_var.Language+sys_var.Vac_Open);   //切换触控屏负压指示
 
                         printf("充满，结束\r\n");
                     }
@@ -225,8 +214,6 @@ void ctr_task(void *pdata)
                 }       
                 
             }
-
-
             break;
         case infusionBottle:    //输液瓶 --1
             if(sys_var.Vac_Open==1)//开负压，在真空口抽真空，
@@ -235,10 +222,7 @@ void ctr_task(void *pdata)
                 {
                     Valve1 = Valve2 = Valve3 = Valve4 = OFF;
                     Valve5 = Valve6 = Valve7 = ON ;
-//                    Valve1 = Valve2 = Valve5 = Valve4 = OFF;
-//                    Valve3 = Valve6 = Valve7 = ON ;
                     PWM3_OUT(VacCtr_ON);       //开泵
-//                    RGB_Colour(GREEN);      //绿灯
                     sys_var.Job_step=2;
                     printf("开泵\r\n");
                     
@@ -253,9 +237,6 @@ void ctr_task(void *pdata)
                     sys_var.Job_step=3;
                     SV17F_MP3_Specify(11);      //真空语音提示
                     Dis_CV_BAS(BAS_BT_V,0,78,95,474);
-//                    HMI_PictureCopy_xy(BAS_BT_V,sys_var.Screen,96,483,96+378,483+80);  //负压控件
-//                    HMI_TXIconVal(VAR_BT_V,sys_var.Vac_Open);   //切换触控屏负压指示
-//                    HMI_TXIconVal(VAR_BT_TV,2*sys_var.Language+sys_var.Vac_Open);   //切换触控屏负压指示
 
                     printf("达到真空\r\n");
                 }
@@ -263,16 +244,15 @@ void ctr_task(void *pdata)
             if((sys_var.work_sta==1)&&(sys_var.Work_Down!=1))     //制臭氧操作
             {
                 
-                if(sys_var.Job_step==3)     //开启电磁阀，制取臭氧,前10s臭氧不进瓶
+                if(sys_var.Job_step==3)     //开启电磁阀，制取臭氧
                 {
                     Valve3 = Valve7 = OFF;
                     Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = ON ;
                     PWM3_OUT(VacCtr_OFF);       //泵
-//                    RGB_Colour(BLUE);      //开蓝灯
                     sys_var.Job_step=4;
                     TIM_Cmd(TIM4, ENABLE);
-//                    PWM2_OUT(map(sys_var.Density,0,80,MIN_PULSE,MAX_PULSE));
-                    PWM2_OUT(Density_P[sys_var.Density-1]);
+//                    PWM2_OUT(Density_P[sys_var.Density-1]);
+                    PWM2_OUT(0);
                     printf("开启制臭氧\r\n");
                     
                 }
@@ -280,28 +260,21 @@ void ctr_task(void *pdata)
                 
                if(sys_var.Adc_value[vacuum_v]>135)    //充满
                 {
-                    if(sys_var.Job_step==4)     //臭氧进入真空瓶
-                    {
 //                     
-                        delay_ms(500);
-                        Valve1 = Valve2 = Valve3 = Valve4 = Valve7 = OFF ;
-                        Valve5 = Valve6 = ON;
-//                    Valve1 = Valve2 = Valve5 = Valve4 = Valve7 = OFF ;
-//                    Valve3  = Valve6 = ON;
-                        sys_var.Job_step=6; //真空瓶内负压达到130Kpa
-                        RGB_Colour(GREEN);
-                        TIM_Cmd(TIM4, DISABLE);     //关制臭氧
-                        PWM2_OUT(0);
-                        sys_var.work_sta = 0;  
-                        Dis_CV_BAS(BAS_BT_C,0,77,95,374);
+                    delay_ms(500);
+                    Valve1 = Valve2 = Valve3 = Valve4 = Valve7 = OFF ;
+                    Valve5 = Valve6 = ON;
+                    sys_var.Job_step=6; //真空瓶内负压达到130Kpa
+//                    RGB_Colour(GREEN);
+                    TIM_Cmd(TIM4, DISABLE);     //关制臭氧
+                    PWM2_OUT(0);
+                    sys_var.work_sta = 0;  
+                    Dis_CV_BAS(BAS_BT_C,0,77,95,374);
 
-                        printf("达到关臭氧\r\n");
-                        printf("Job_step=%d",sys_var.Job_step);
-                    }
+                    printf("达到关臭氧\r\n");
+                    printf("Job_step=%d",sys_var.Job_step);
+                
                 }
-                
-                
-
             }
             else
             {
@@ -310,8 +283,9 @@ void ctr_task(void *pdata)
 //                        sys_var.Adc_value[vacuum_v] = Get_vac_value();
                     if(sys_var.Adc_value[vacuum_v]<105)   //
                     {
+                        Valve5 = ON;
                         Valve1 = Valve2 = Valve3 = Valve4 = Valve7 = OFF ;
-                        Valve5 = Valve6 = OFF;
+                        Valve6 = OFF;
                         sys_var.Job_step = 7;
                         
                         printf("回血结束\r\n");
@@ -338,7 +312,8 @@ void ctr_task(void *pdata)
                     Valve4 = Valve5 = Valve6 = Valve7 = OFF;
                     TIM_Cmd(TIM4, ENABLE);      //开启PWM输出
 //                    PWM2_OUT(map(sys_var.Density,0,80,MIN_PULSE,MAX_PULSE));
-                    PWM2_OUT(Density_P[sys_var.Density-1]);
+//                    PWM2_OUT(Density_P[sys_var.Density-1]);
+                    PWM2_OUT(0);
                     sys_var.Job_step=2;     //开始输出臭氧
                     
 //                    RGB_Colour(BLUE);      //关灯
@@ -347,7 +322,8 @@ void ctr_task(void *pdata)
                 if(sys_var.Job_step==3)
                 {
 //                    OSTmrStop(tmr1,OS_TMR_OPT_PERIODIC,(OS_TMR_CALLBACK)tmr1_callback,&err);
-                    Valve1 = Valve2 = Valve3 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
+                    Valve3 = ON;
+                    Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
                     TIM_Cmd(TIM4, DISABLE);     //关闭PWM输出
                     PWM2_OUT(0);
 //                    RGB_Colour(GREEN);      //开绿灯
@@ -363,7 +339,8 @@ void ctr_task(void *pdata)
                 {
                     sys_var.Job_step = 1;
 ////                    OSTmrStop(tmr1,OS_TMR_OPT_PERIODIC,(OS_TMR_CALLBACK)tmr1_callback,&err);
-                    Valve1 = Valve2 = Valve3 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
+                    Valve3 = ON;
+                    Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
                     TIM_Cmd(TIM4, DISABLE);     //关闭PWM输出
                     PWM2_OUT(0);
                 }
@@ -379,7 +356,6 @@ void ctr_task(void *pdata)
                     PWM3_OUT(VacCtr_OFF);
                     Valve1 = Valve2 = Valve4 = Valve5 = ON;
                     Valve3 = Valve6 = Valve7 =  OFF;
-//                    OSTmrStart(tmr1,&err);//启动软件定时器1
                     TIM_Cmd(TIM4,DISABLE);  //开臭氧
 //                    pulse = map(sys_var.Density,0,80,MIN_PULSE,MAX_PULSE);
                     PWM2_OUT(0);
@@ -395,8 +371,8 @@ void ctr_task(void *pdata)
 //                    HMI_PictureCopy_xy(BAS_H_Work,sys_var.Screen+sys_var.work_sta,597,552,597+361,552+90);  //开启暂停控件
 //                    HMI_TXIconVal(AMT_H_Work,sys_var.work_sta);
                     sys_var.Job_step=4;
-                    Valve3 =ON;
-                    Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
+                    Valve5 =ON;
+                    Valve1 = Valve2 = Valve4 = Valve3  = Valve6 = Valve7 = OFF;
                     TIM_Cmd(TIM4, DISABLE);  //关臭氧
                     PWM2_OUT(0);
                     printf("倒计时结束\r\n");
@@ -413,7 +389,8 @@ void ctr_task(void *pdata)
                 {
 //                    OSTmrStop(tmr1,OS_TMR_OPT_PERIODIC,(OS_TMR_CALLBACK)tmr1_callback,&err);
                     sys_var.Job_step=1;
-                    Valve1 = Valve2 = Valve3 =OFF;
+                    Valve3 = ON;
+                    Valve1 = Valve2 = OFF;
                     Valve4 = Valve5 = Valve6 = Valve7 = OFF;
                     TIM_Cmd(TIM4, DISABLE);  //关臭氧
                     PWM2_OUT(0);
@@ -428,19 +405,15 @@ void ctr_task(void *pdata)
             {
                 if(sys_var.Job_step==1)     //开始制臭氧抽真空
                 {
-                    Valve5 =  Valve7 = ON;
-                    Valve6 = OFF;
-                    Valve1 = Valve2 = Valve4 = ON;
-                    Valve3 = OFF;
+                    Valve1 = Valve2 = Valve4 = Valve5 = Valve7 = ON;
+                    Valve3 = Valve6 = OFF;
+                      
                     TIM_Cmd(TIM4, ENABLE);      //开制臭氧
-//                    PWM2_OUT(map(sys_var.Density,0,80,MIN_PULSE,MAX_PULSE));
-                    PWM2_OUT(Density_P[sys_var.Density-1]);
+//                    PWM2_OUT(Density_P[sys_var.Density-1]);
+                    PWM2_OUT(0);
                     sys_var.Job_step=4;
                     
                     printf("开制臭氧\r\n");
-//                    delay_ms(500);      //短暂延时
-                    
-//                    RGB_Colour(GREEN);//关灯
                     printf("开泵\r\n");
 
                 }
@@ -479,7 +452,8 @@ void ctr_task(void *pdata)
                     cnt = 0;    //清零计数
                     printf("关制臭氧\r\n");
                     delay_ms(1000);
-                    Valve1 = Valve2 = Valve4 = Valve5 = OFF ;
+                    Valve5 = ON;
+                    Valve1 = Valve2 = Valve4 =  OFF ;
                     Valve3 = Valve6 = Valve7 = OFF;
                     PWM3_OUT(VacCtr_OFF);        //关泵
                     sys_var.Job_step=6;
@@ -487,8 +461,6 @@ void ctr_task(void *pdata)
                     printf("关泵\r\n");
                 }
             }
-            
-            
             break;
         case ration:        //定量供气
             if((sys_var.work_sta==1)&&(sys_var.Work_Down!=1))
@@ -522,14 +494,11 @@ void ctr_task(void *pdata)
             {
                 if(sys_var.Job_step >1)
                 {
-                    
                     sys_var.Job_step = 1;
                     Valve3 = ON;
                     Valve1 = Valve2 = Valve4 = Valve5 = Valve6 = Valve7 = OFF;
                     TIM_Cmd(TIM4, DISABLE);     //关闭PWM输出
                     PWM2_OUT(0);
-//                    LED_B = OFF;//蓝灯关
-//                    LED_G = ON; //绿灯亮
                     printf("关制臭氧\r\n");
                 }
             }
